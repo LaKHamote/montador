@@ -6,6 +6,9 @@ class Table{
     private:
         map<string, string> data;
     public:
-        void add(const string &key, string value) {data[key] = value;}
+        Table() {};
+        Table(const map<std::string, std::string> &baseData) : data(baseData) {};
         string get(const std::string &key);
+        void add(const string &key, string value);
+        void update(const string &key, string value);
 };
