@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "./functions.hpp"
 
 string Table::get(const std::string &key){
@@ -23,5 +25,11 @@ void Table::update(const string &key, string value) {
     }
     else{
         throw invalid_argument(key+" was never declared");
+    }
+}
+
+void Table::show(){
+    for(const auto &elem : this->data){
+        cout << elem.first+" : "+elem.second<< endl;
     }
 }
