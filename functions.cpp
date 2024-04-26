@@ -30,6 +30,6 @@ void Table::update(const string &key, string value) {
 
 void Table::show(){
     for(const auto &elem : this->data){
-        cout << elem.first+" : "+elem.second<< endl;
+        cout << elem.first <<" : " << elem.second<< endl;
     }
 }

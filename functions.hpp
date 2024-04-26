@@ -12,4 +12,5 @@ class Table{
         void add(const string &key, string value);
         void update(const string &key, string value);
         void show();
+        map<string, string> getData() { return data; };
 };
