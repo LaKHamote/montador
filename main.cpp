@@ -49,8 +49,14 @@ int main()
                 if(!(iss>>word)) continue; // label in empty line
             }
             if(macros.get(word) != "") {
-                codeGenerated.add(to_string(pc),"xx"); pc++; // macro takes 1 memory space TODO: resolve CONST
-                if(iss>>word) throw invalid_argument("Macros do not have arguments");
+                if(word=="SPACE"){
+                    codeGenerated.add(to_string(pc),"xx"); pc++; // macro takes 1 memory space TODO: resolve CONST
+                    if(iss>>word) throw invalid_argument("Too many arguments");
+                }else if(word=="CONST"){
+                    if(!(iss>>word)) throw invalid_argument("Too few arguments");
+                    codeGenerated.add(to_string(pc),word); pc++; // macro takes 1 memory space TODO: resolve CONST
+                    if(iss>>word) throw invalid_argument("Too many arguments");
+                }
             }else{
                 string opcode = mnemonics.get(word);
                 if(opcode == "") throw invalid_argument("Unknown mnemonic");
