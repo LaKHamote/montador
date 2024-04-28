@@ -36,7 +36,7 @@ int main()
     Table dependencies;
 
 
-    ifstream file("../ex2.txt"); // TODO: fazer IOStream
+    ifstream file("../ex1.txt"); // TODO: IOStream
     string line;
     int pc = 0;
     int line_counter = 0;
@@ -47,8 +47,8 @@ int main()
             istringstream iss(line);                                                 // iss>>word gets the next word
             string word;
             if(!(iss>>word)) continue;                                               // no words in the current line
-            if(word[word.length()-1] == ':') { // LABEL FOUND AS THE FIRST WORD
-                string string_pc = string(pc<10,'0') + to_string(pc);
+            if(word[word.length()-1] == ':') {                                       // LABEL FOUND AS THE FIRST WORD
+                string string_pc = string(pc<10,'0') + to_string(pc); 
                 symbols.add(                                                         // store the label with the current pc
                     word.substr(0,word.length()-1),
                     string(pc<10,'0') + to_string(pc)); 
@@ -73,11 +73,15 @@ int main()
                     pc+=1;
                 }
                 else{
+                    string command = word;
                     if(!(iss>>word)) throw invalid_argument("Erro na linha "+to_string(line_counter)+": Too few arguments");
-                    if(word=="COPY"){ // ???????????? TODO
-                        dependencies.add(to_string(pc), word);
+
+                    if(command=="COPY"){
+                        dependencies.add(to_string(pc), word.substr(0, word.length()-1));           // ommit the comma at the end of the word
                         if(!(iss>>word)) throw invalid_argument("Erro na linha "+to_string(line_counter)+": Too few arguments");
-                        dependencies.add(to_string(pc), word);
+                        dependencies.add(to_string(pc), word, true);                                // allow two values at the line where the "copy" command is
+                        
+                        
                         pc+=3;
 
                     }else{
@@ -91,10 +95,27 @@ int main()
         }
         file.close();
     for(const auto &[pc, label] : dependencies.getData()){
-        codeGenerated.update(
+        istringstream isss(label);
+        string label1;
+        string label2; 
+        isss>>label1;
+
+        if (isss>>label2) {                                                     // if more than one label in labels, iterate through each one
+            codeGenerated.update(
             pc,
-            codeGenerated.get(pc) + symbols.get(label));
+            codeGenerated.get(pc) + symbols.get(label1) + symbols.get(label2)); 
+
+        }else{                                                                  // else, proceed with 1 label       
+            codeGenerated.update(
+                pc,
+                codeGenerated.get(pc) + symbols.get(label1));
+        }  
     }
+
+
+        
+
+
     }else {
         cerr << "Não foi possível abrir o arquivo." << endl;
     }

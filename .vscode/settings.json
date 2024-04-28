@@ -1,8 +1,8 @@
 {
+    "cmake.configureOnOpen": true,
     "files.associations": {
-        "ostream": "cpp",
         "stdexcept": "cpp",
-        "string_view": "cpp",
+        "iostream": "cpp",
         "string": "cpp"
     }
 }
