@@ -1,6 +1,6 @@
 #include "main.hpp"
 
-#include <string.h>
+#include <string>
 #include <stdexcept>
 #include <iostream>
 #include <fstream>
@@ -28,8 +28,8 @@ int main()
         {"STOP", "14"}
     });
     Table macros({
-        {"SPACE","xx"},
-        {"CONST","xx"}
+        {"SPACE","00"},
+        {"CONST","00"}
     });
     Table symbols;
     Table codeGenerated;
@@ -54,9 +54,9 @@ int main()
                     string(pc<10,'0') + to_string(pc)); 
                 if(!(iss>>word)) continue;                                           // label in empty line
             }
-            if(macros.get(word) != "") {
+            if(macros.get(word) != nullptr) {
                 if(word=="SPACE"){
-                    codeGenerated.add(to_string(pc),"xx");
+                    codeGenerated.add(to_string(pc),"00");
                     if(iss>>word) throw invalid_argument("Erro na linha "+to_string(line_counter)+": Too many arguments");
                 }else if(word=="CONST"){
                     if(!(iss>>word)) throw invalid_argument("Erro na linha "+to_string(line_counter)+": Too few arguments");
@@ -65,7 +65,7 @@ int main()
                 }
                 pc++; // macros take 1 memory space
             }else{
-                string opcode = mnemonics.get(word);
+                string opcode = *mnemonics.get(word);
                 if(opcode == "") throw invalid_argument("Erro na linha "+to_string(line_counter)+": Unknown mnemonic ->" + word);
                 codeGenerated.add(to_string(pc),opcode);
                 if(word=="STOP"){
@@ -90,10 +90,10 @@ int main()
             cout<<"-----------"<<endl;
         }
         file.close();
-    for(const auto &[pc, label] : dependencies.getData()){
+    for(const auto &[pc, label] : *dependencies.getData()){
         codeGenerated.update(
             pc,
-            codeGenerated.get(pc) + symbols.get(label));
+            *codeGenerated.get(pc) + *symbols.get(label));
     }
     }else {
         cerr << "Não foi possível abrir o arquivo." << endl;

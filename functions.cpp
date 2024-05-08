@@ -1,17 +1,18 @@
 #include <iostream>
+#include <stdexcept>
 
 #include "./functions.hpp"
 
-string Table::get(const std::string &key){
-    // If key does not exist, return ""
-    if (data.find(key) == data.end()) {
-        return "";
+string* Table::get(const std::string &key){
+    auto it = data.find(key);
+    if (it == data.end()) {
+        return nullptr;
     }
-    return data.at(key);
+    return &(it->second);
 }
 
 void Table::add(const string &key, string value) {
-    if(this->get(key) == "") {
+    if(this->get(key) == nullptr) {
         data[key] = value;
     }
     else{
@@ -20,7 +21,7 @@ void Table::add(const string &key, string value) {
 }
 
 void Table::update(const string &key, string value) {
-    if(this->get(key) != "") {
+    if(this->get(key) != nullptr) {
         data[key] = value;
     }
     else{
