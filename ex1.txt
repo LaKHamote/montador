@@ -1,4 +1,4 @@
-	N0:  INPUT       N1 
+INPUT       N1 
 INPUT     N2
 LOAD N1
 ADD          N2

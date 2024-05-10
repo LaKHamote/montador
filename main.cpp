@@ -11,7 +11,7 @@ using namespace std;
 
 int main()
 {
-    Table mnemonics({
+    Table<string> mnemonics({
         {"ADD", "01"},
         {"SUB", "02"},
         {"MUL", "03"},
@@ -27,13 +27,13 @@ int main()
         {"OUTPUT", "13"},
         {"STOP", "14"}
     });
-    Table macros({
+    Table<string> macros({
         {"SPACE","00"},
         {"CONST","00"}
     });
-    Table symbols;
-    Table codeGenerated;
-    Table dependencies;
+    Table<string> symbols;
+    Table<int> codeGenerated;
+    Table<int> dependencies;
 
 
     ifstream file("../ex2.txt"); // TODO: fazer IOStream
@@ -47,7 +47,7 @@ int main()
             istringstream iss(line);                                                 // iss>>word gets the next word
             string word;
             if(!(iss>>word)) continue;                                               // no words in the current line
-            if(word[word.length()-1] == ':') { // LABEL FOUND AS THE FIRST WORD
+            if(word[word.length()-1] == ':') {                                       // LABEL FOUND AS THE FIRST WORD
                 string string_pc = string(pc<10,'0') + to_string(pc);
                 symbols.add(                                                         // store the label with the current pc
                     word.substr(0,word.length()-1),
@@ -56,18 +56,18 @@ int main()
             }
             if(macros.get(word) != nullptr) {
                 if(word=="SPACE"){
-                    codeGenerated.add(to_string(pc),"00");
+                    codeGenerated.add(pc,"00");
                     if(iss>>word) throw invalid_argument("Erro na linha "+to_string(line_counter)+": Too many arguments");
                 }else if(word=="CONST"){
                     if(!(iss>>word)) throw invalid_argument("Erro na linha "+to_string(line_counter)+": Too few arguments");
-                    codeGenerated.add(to_string(pc),string(2-word.length(),'0') + word);
+                    codeGenerated.add(pc,string(2-word.length(),'0') + word);
                     if(iss>>word) throw invalid_argument("Erro na linha "+to_string(line_counter)+": Too many arguments");
                 }
                 pc++; // macros take 1 memory space
             }else{
                 string opcode = *mnemonics.get(word);
                 if(opcode == "") throw invalid_argument("Erro na linha "+to_string(line_counter)+": Unknown mnemonic ->" + word);
-                codeGenerated.add(to_string(pc),opcode);
+                codeGenerated.add(pc,opcode);
                 if(word=="STOP"){
                     if(iss>>word) throw invalid_argument("Erro na linha "+to_string(line_counter)+": Too many arguments");
                     pc+=1;
@@ -75,19 +75,19 @@ int main()
                 else{
                     if(!(iss>>word)) throw invalid_argument("Erro na linha "+to_string(line_counter)+": Too few arguments");
                     if(word=="COPY"){ // ???????????? TODO
-                        dependencies.add(to_string(pc), word);
+                        dependencies.add(pc, word);
                         if(!(iss>>word)) throw invalid_argument("Erro na linha "+to_string(line_counter)+": Too few arguments");
-                        dependencies.add(to_string(pc), word);
+                        dependencies.add(pc, word);
                         pc+=3;
 
                     }else{
-                        dependencies.add(to_string(pc), word);
+                        dependencies.add(pc, word);
                         if(iss>>word) throw invalid_argument("Erro na linha "+to_string(line_counter)+": Too many arguments");
                         pc+=2;
                     }
                 }
             }
-            cout<<"-----------"<<endl;
+            // cout<<"-----------"<<endl;
         }
         file.close();
     for(const auto &[pc, label] : *dependencies.getData()){
