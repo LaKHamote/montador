@@ -1,3 +1,6 @@
+#ifndef TABLE_HPP
+#define TABLE_HPP
+
 #include <iostream>
 #include <map>
 #include <string>
@@ -17,8 +20,8 @@ class Table {
         map<keyType, string>* getData() { return &data; };
 
         string* get(const keyType &key) {
-            auto it = data.find(key);
-            if (it == data.end()) {
+            auto it = this->data.find(key);
+            if (it == this->data.end()) {
                 return nullptr;
             }
             return &(it->second);
@@ -46,3 +49,5 @@ class Table {
             }
         }
 };
+
+#endif 

@@ -8,6 +8,8 @@
 
 using namespace std;
 
+#define ABSOLUTE "0" 
+#define RELATIVE "1" 
 
 int main()
 {
@@ -33,7 +35,8 @@ int main()
     });
     Table<string> symbols;
     Table<int> codeGenerated;
-    Table<int> dependencies;
+    Table<int> pendencies;
+    Table<int> real;
 
 
     ifstream file("../ex2.txt"); // TODO: fazer IOStream
@@ -41,8 +44,9 @@ int main()
     int pc = 0;
     int line_counter = 0;
     if (file.is_open()) {
+        // TODO:  pre-processamento
         while (getline(file, line)) {
-            // cout << line << endl;
+            // std::cout << line << endl;
             line_counter++;
             istringstream iss(line);                                                 // iss>>word gets the next word
             string word;
@@ -56,53 +60,54 @@ int main()
             }
             if(macros.get(word) != nullptr) {
                 if(word=="SPACE"){
-                    codeGenerated.add(pc,"00");
+                    codeGenerated.add(pc,"00");real.add(pc,ABSOLUTE);pc++;
                     if(iss>>word) throw invalid_argument("Erro na linha "+to_string(line_counter)+": Too many arguments");
                 }else if(word=="CONST"){
                     if(!(iss>>word)) throw invalid_argument("Erro na linha "+to_string(line_counter)+": Too few arguments");
-                    codeGenerated.add(pc,string(2-word.length(),'0') + word);
+                    codeGenerated.add(pc,string(2-word.length(),'0') + word);real.add(pc,ABSOLUTE);pc++;
                     if(iss>>word) throw invalid_argument("Erro na linha "+to_string(line_counter)+": Too many arguments");
                 }
-                pc++; // macros take 1 memory space
             }else{
-                string opcode = *mnemonics.get(word);
-                if(opcode == "") throw invalid_argument("Erro na linha "+to_string(line_counter)+": Unknown mnemonic ->" + word);
-                codeGenerated.add(pc,opcode);
+                string* opcode = mnemonics.get(word);
+                if(opcode == nullptr) throw invalid_argument("Erro na linha "+to_string(line_counter)+": Unknown mnemonic " + word);
+                
+                codeGenerated.add(pc,*opcode);real.add(pc,ABSOLUTE);pc++;
                 if(word=="STOP"){
                     if(iss>>word) throw invalid_argument("Erro na linha "+to_string(line_counter)+": Too many arguments");
-                    pc+=1;
                 }
                 else{
                     if(!(iss>>word)) throw invalid_argument("Erro na linha "+to_string(line_counter)+": Too few arguments");
                     if(word=="COPY"){ // ???????????? TODO
-                        dependencies.add(pc, word);
+                        pendencies.add(pc, word);real.add(pc,RELATIVE);pc++;
                         if(!(iss>>word)) throw invalid_argument("Erro na linha "+to_string(line_counter)+": Too few arguments");
-                        dependencies.add(pc, word);
-                        pc+=3;
+                        pendencies.add(pc, word);real.add(pc,RELATIVE);pc++;
 
                     }else{
-                        dependencies.add(pc, word);
+                        pendencies.add(pc, word);real.add(pc,RELATIVE);pc++;
                         if(iss>>word) throw invalid_argument("Erro na linha "+to_string(line_counter)+": Too many arguments");
-                        pc+=2;
                     }
                 }
             }
-            // cout<<"-----------"<<endl;
+            // std::cout<<"-----------"<<endl;
         }
         file.close();
-    for(const auto &[pc, label] : *dependencies.getData()){
-        codeGenerated.update(
+    for(const auto &[pc, label] : *pendencies.getData()){
+        codeGenerated.add(
             pc,
-            *codeGenerated.get(pc) + *symbols.get(label));
+            *symbols.get(label)
+        );
     }
     }else {
         cerr << "Não foi possível abrir o arquivo." << endl;
     }
+    std::cout<<"-----------"<<endl;
     symbols.show();
-    cout<<"-----------"<<endl;
+    std::cout<<"-----------"<<endl;
+    pendencies.show();
+    std::cout<<"-----------"<<endl;
     codeGenerated.show();
-    cout<<"-----------"<<endl;
-    dependencies.show();
+    std::cout<<"-----------"<<endl;
+    real.show();
     
     
     return 0;

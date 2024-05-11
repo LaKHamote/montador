@@ -1,4 +1,4 @@
-cpp_source = ../functions.cpp
+cpp_source = ../main.cpp
 
 all:	main.exe
 	./main.exe
@@ -6,17 +6,11 @@ all:	main.exe
 test:	runtest.exe
 	./runtest.exe
 
-runtest.exe:	runtest.o functions.o
-	g++ -std=c++17 -Wall ./*.o -o runtest.exe
+runtest.exe:	functions.o ../runtest.cpp
+	g++ -std=c++17 -Wall ./*.o ../runtest.cpp -o runtest.exe
 
-runtest.o:	../runtest.cpp
-	g++ -std=c++17 -Wall -c ../runtest.cpp
-
-main.exe:	main.o functions.o
-	g++ -std=c++17 -Wall ./*.o -o main.exe
-
-main.o:	../main.cpp
-	g++ -std=c++17 -Wall -c ../main.cpp
+main.exe:	functions.o $(cpp_source)
+	g++ -std=c++17 -Wall ./*.o $(cpp_source) -o main.exe
 
 functions.o:	../functions.cpp
 	g++ -std=c++17 -Wall -c ../functions.cpp
