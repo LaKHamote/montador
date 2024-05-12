@@ -11,9 +11,7 @@ using namespace std;
 #define ABSOLUTE "0" 
 #define RELATIVE "1" 
 
-int main()
-{
-    Table<string, string> mnemonics({
+Table<string, string> mnemonics({
         {"ADD", "01"},
         {"SUB", "02"},
         {"MUL", "03"},
@@ -29,17 +27,18 @@ int main()
         {"OUTPUT", "13"},
         {"STOP", "14"}
     });
-    Table<string, string> macros({
-        {"SPACE","00"},
-        {"CONST","00"}
-    });
+Table<string, string> macros({
+    {"SPACE","00"},
+    {"CONST","00"}
+});
+
+void montador(string file_path){
     Table<string, string> symbols;
     Table<int, string> codeGenerated;
     Table<int, string> pendencies;
     Table<int, string> real;
 
-
-    ifstream file("../ex2.txt"); // TODO: fazer IOStream
+    ifstream file(file_path); // TODO: fazer IOStream
     string line;
     int pc = 0;
     int line_counter = 0;
@@ -76,19 +75,20 @@ int main()
                     if(iss>>word) throw invalid_argument("Erro na linha "+to_string(line_counter)+": Too many arguments");
                 }
                 else{
-                    if(!(iss>>word)) throw invalid_argument("Erro na linha "+to_string(line_counter)+": Too few arguments");
-                    if(word=="COPY"){ // ???????????? TODO
-                        pendencies.add(pc, word);real.add(pc,RELATIVE);pc++;
-                        if(!(iss>>word)) throw invalid_argument("Erro na linha "+to_string(line_counter)+": Too few arguments");
-                        pendencies.add(pc, word);real.add(pc,RELATIVE);pc++;
-
+                    if(word=="COPY"){ // TODO
+                        if (!(iss >> word)) throw invalid_argument("Erro na linha " + to_string(line_counter) + ": Too few arguments");
+                        size_t c_index = word.find(',');
+                        if (c_index == string::npos) throw invalid_argument("Erro na linha " + to_string(line_counter) + ": Missing comma in COPY instruction");
+                        pendencies.add(pc, word.substr(0, c_index));real.add(pc,RELATIVE);pc++;
+                        pendencies.add(pc, word.substr(c_index + 1));real.add(pc,RELATIVE);pc++;
+                        if(iss>>word) throw invalid_argument("Erro na linha "+to_string(line_counter)+": Too many arguments");
                     }else{
+                        if(!(iss>>word)) throw invalid_argument("Erro na linha "+to_string(line_counter)+": Too few arguments");
                         pendencies.add(pc, word);real.add(pc,RELATIVE);pc++;
                         if(iss>>word) throw invalid_argument("Erro na linha "+to_string(line_counter)+": Too many arguments");
                     }
                 }
             }
-            // std::cout<<"-----------"<<endl;
         }
         file.close();
     for(const auto &[pc, label] : *pendencies.getData()){
@@ -108,6 +108,15 @@ int main()
     codeGenerated.show();
     std::cout<<"-----------"<<endl;
     real.show();
+}
+
+
+
+int main() {
+    
+    montador("../ex1.txt");
+    montador("../ex2.txt"); 
+    montador("../ex3.txt"); 
     
     
     return 0;

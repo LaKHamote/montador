@@ -8,8 +8,8 @@ FRONT:  LOAD    OLDER
         SUB     LIMIT
         JMPP    FINAL
         OUTPUT  NEW
-        COPY    OLD,    OLDER
-        COPY    NEW,    OLD
+        COPY    OLD,OLDER
+        COPY    NEW,OLD
         JMP     FRONT
 FINAL:  OUTPUT  LIMIT
         STOP
