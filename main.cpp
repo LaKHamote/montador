@@ -13,7 +13,7 @@ using namespace std;
 
 int main()
 {
-    Table<string> mnemonics({
+    Table<string, string> mnemonics({
         {"ADD", "01"},
         {"SUB", "02"},
         {"MUL", "03"},
@@ -29,14 +29,14 @@ int main()
         {"OUTPUT", "13"},
         {"STOP", "14"}
     });
-    Table<string> macros({
+    Table<string, string> macros({
         {"SPACE","00"},
         {"CONST","00"}
     });
-    Table<string> symbols;
-    Table<int> codeGenerated;
-    Table<int> pendencies;
-    Table<int> real;
+    Table<string, string> symbols;
+    Table<int, string> codeGenerated;
+    Table<int, string> pendencies;
+    Table<int, string> real;
 
 
     ifstream file("../ex2.txt"); // TODO: fazer IOStream

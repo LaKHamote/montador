@@ -8,18 +8,18 @@
 
 using namespace std;
 
-template<class keyType>
+template<class keyType, class valueType>
 class Table {
     private:
-        map<keyType, string> data;
+        map<keyType, valueType> data;
 
     public:
         Table() {};
-        Table(const map<keyType, string> &baseData) : data(baseData) {};
+        Table(const map<keyType, valueType> &baseData) : data(baseData) {};
 
-        map<keyType, string>* getData() { return &data; };
+        map<keyType, valueType>* getData() { return &data; };
 
-        string* get(const keyType &key) {
+        valueType* get(const keyType &key) {
             auto it = this->data.find(key);
             if (it == this->data.end()) {
                 return nullptr;
@@ -27,7 +27,7 @@ class Table {
             return &(it->second);
         }
 
-        void add(const keyType &key, string value) {
+        void add(const keyType &key, valueType value) {
             if (this->get(key) == nullptr) {
                 data[key] = value;
             } else {
@@ -35,7 +35,7 @@ class Table {
             }
         }
 
-        void update(const keyType &key, string value) {
+        void update(const keyType &key, valueType value) {
             if (this->get(key) != nullptr) {
                 data[key] = value;
             } else {
