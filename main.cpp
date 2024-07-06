@@ -5,6 +5,9 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <unordered_map>
+#include <algorithm>
+#include <vector>
 
 using namespace std;
 
@@ -31,6 +34,180 @@ Table<string, string> macros({
     {"SPACE","00"},
     {"CONST","00"}
 });
+
+unordered_map<string, string> equTable; // Tabela para armazenar valores de EQU
+
+// Converter strings 
+string paraMinuscula(const string& str) {
+    string result = str;
+    transform(result.begin(), result.end(), result.begin(), ::tolower);
+    return result;
+}
+
+
+// Remove espaços desnecessários
+string removeEspaco(const string& line) {
+    string result;
+    bool inSpace = false;
+    bool copyFound = false;
+
+    for (size_t i = 0; i < line.length(); ++i) {
+        char c = line[i];
+
+        if (isspace(c)) {
+            if (!inSpace) {
+                // Adiciona um espaço apenas se não estiver dentro de espaços consecutivos e se a linha nao comecar com espacos
+                if (i != 0) {
+                    result += ' ';
+                }
+                inSpace = true;
+            }
+        } else {
+            inSpace = false;
+            result += c;
+
+            // Verifica se encontrou a palavra-chave "COPY"
+            if (i + 4 <= line.length() && line.substr(i, 4) == "copy") {
+                copyFound = true;
+            }
+
+            // Remove espaço após a vírgula se estiver dentro de uma instrução "COPY X, X"
+            if (copyFound && c == ',' && i + 1 < line.length() && line[i + 1] == ' ') {
+                ++i; // Avança para pular o espaço
+                inSpace = true;
+            }
+        }
+    }
+
+    return result;
+}
+
+string encontraDiretiva(const vector<string>& v, const string& directive) {
+    auto pos = find(v.begin(), v.end(), directive);
+
+    if (pos != v.end()) {
+        int index = distance(v.begin(), pos);
+
+        if (index >= 1 && index + 1 < v.size() && directive == "equ") {
+            equTable[v[index - 1]] = v[index + 1];
+            return "";
+        } else {
+            // Processa const
+            stringstream result;
+            for (const auto& word : v) {
+                // Converte palavra hexadecimal para decimal, se aplicável
+                if (word.substr(0, 2) == "0x" || word.substr(0, 3) == "-0x") {
+                    try {
+                        int hexValue = stoi(word, nullptr, 16);
+                        result << hexValue << " ";
+                    } catch (const std::invalid_argument& e) {
+                        cerr << "Erro ao converter hexadecimal para decimal: " << e.what() << endl;
+                    }
+                } else {
+                    result << word << " ";
+                }
+            }
+            return result.str();
+        }
+
+        
+
+    }
+    return "nao se aplica";
+}
+
+
+void preprocessa(string inputFilePath, string outputFilePath) {
+    ifstream inputFile(inputFilePath);
+    ofstream outputFile(outputFilePath);
+
+    if (!inputFile.is_open()) {
+        cerr << "Erro ao abrir o arquivo de entrada" << endl;
+        return;
+    }
+
+    if (!outputFile.is_open()) {
+        cerr << "Erro ao abrir o arquivo de saída" << endl;
+        return;
+    }
+
+    string line;
+
+    int previous_label=0;
+    string previous_line = "";
+
+    // Processar o restante do arquivo
+    while (getline(inputFile, line)) {
+        line = paraMinuscula(line);
+        line = removeEspaco(line);
+
+        if (previous_label == 1) {
+            line.insert(0, previous_line);
+            line.insert(previous_line.length(), " ");
+
+            previous_label = 0;
+        }
+
+        // Caso de rotulos
+        if (line[line.length() - 1] == ':') {
+            previous_label=1;
+            previous_line=line;
+            line = "";
+        }
+
+        int start, end;
+        start = end = 0;
+        vector<string> v;
+
+        char dl = ' ';
+
+        while ((start = line.find_first_not_of(dl, end)) != string::npos) {
+
+            end = line.find(dl, start);
+  
+            v.push_back(line.substr(start, end - start));
+        }
+
+        // popula o map com equ, para depois
+        if (encontraDiretiva(v, "equ") != "nao se aplica") {
+            line="";
+        }
+        // troca os valores das constantes de hexa para decimal
+        if (encontraDiretiva(v, "const") != "nao se aplica") {
+            line = encontraDiretiva(v, "const");
+        }
+
+        // Remover comentários
+        size_t commentPos = line.find(';');
+        if (commentPos != string::npos) {
+            line = line.substr(0, commentPos);
+        }
+
+        // Processar diretivas IF
+        if (line.find("if") != string::npos) {
+            
+            istringstream iss(line);
+            string command, condition;
+            iss >> command >> condition;
+            condition += ':';
+            if (equTable.find(condition) == equTable.end() || equTable[condition] == "0") {
+                getline(inputFile, line);  // Ignorar a próxima linha se a condição for falsa
+                continue;
+            }
+            line = "";
+        }
+
+        // Formatar linha final
+        line = removeEspaco(line);
+
+        if (line != "") {
+            outputFile << line << endl;
+        }
+    }
+
+    inputFile.close();
+    outputFile.close();
+}
 
 void montador(string file_path){
     Table<string, string> symbols;
@@ -114,8 +291,9 @@ void montador(string file_path){
 int main() {
 
     // TODO:  pre-processamento
-    montador("../ex1.txt");
-    montador("../ex2.txt");
+    preprocessa("../exemplos/ex4.txt", "../myfile.pre");
+    //montador("../exemplos/ex1.txt");
+    // montador("../exemplos/ex2.txt");
     // montador("../ex3.txt"); 
     
     
