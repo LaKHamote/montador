@@ -43,7 +43,6 @@ void montador(string file_path){
     int pc = 0;
     int line_counter = 0;
     if (file.is_open()) {
-        // TODO:  pre-processamento
         while (getline(file, line)) {
             // std::cout << line << endl;
             line_counter++;
@@ -100,23 +99,24 @@ void montador(string file_path){
     }else {
         cerr << "Não foi possível abrir o arquivo." << endl;
     }
-    std::cout<<"-----------"<<endl;
+    std::cout<<"-----Symbols------"<<endl;
     symbols.show();
-    std::cout<<"-----------"<<endl;
+    std::cout<<"-----Pendencies------"<<endl;
     pendencies.show();
-    std::cout<<"-----------"<<endl;
+    std::cout<<"-----Code------"<<endl;
     codeGenerated.show();
-    std::cout<<"-----------"<<endl;
+    std::cout<<"------Real-----"<<endl;
     real.show();
 }
 
 
 
 int main() {
-    
+
+    // TODO:  pre-processamento
     montador("../ex1.txt");
-    montador("../ex2.txt"); 
-    montador("../ex3.txt"); 
+    montador("../ex2.txt");
+    // montador("../ex3.txt"); 
     
     
     return 0;
