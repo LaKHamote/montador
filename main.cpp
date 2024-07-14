@@ -37,7 +37,7 @@ Table<string, string> macros({
 
 unordered_map<string, string> equTable; // Tabela para armazenar valores de EQU
 
-// Converter strings 
+// pre-processamento : Converter strings 
 string paraMinuscula(const string& str) {
     string result = str;
     transform(result.begin(), result.end(), result.begin(), ::tolower);
@@ -45,7 +45,7 @@ string paraMinuscula(const string& str) {
 }
 
 
-// Remove espaços desnecessários
+// pre-processamento : Remove espaços desnecessários
 string removeEspaco(const string& line) {
     string result;
     bool inSpace = false;
@@ -81,7 +81,7 @@ string removeEspaco(const string& line) {
 
     return result;
 }
-
+// pre-processamento : lida com os casos de numeros em hexa/comando equ
 string encontraDiretiva(const vector<string>& v, const string& directive) {
     auto pos = find(v.begin(), v.end(), directive);
 
@@ -286,13 +286,19 @@ void montador(string file_path){
     real.show();
 }
 
+void ligador(){
+    // lidar com diretivas BEGIN
+    // criar as tabelas de simbolo, Tabela de Uso, Tabela de Definiçoes
+    // gerar o executavel
+}
+
 
 
 int main() {
 
     // TODO:  pre-processamento
-    preprocessa("../exemplos/ex4.txt", "../myfile.pre");
-    //montador("../exemplos/ex1.txt");
+    //preprocessa("../exemplos/ex4.txt", "../myfile.pre");
+    montador("../exemplos/ex5.txt");
     // montador("../exemplos/ex2.txt");
     // montador("../ex3.txt"); 
     
