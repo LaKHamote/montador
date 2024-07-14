@@ -42,11 +42,15 @@ class Table {
                 throw invalid_argument(key + " was never declared");
             }
         }
-
-        void show() {
+        // se quiser imprimir no terminal, só nao colocar o output=seuOutputFile
+        void show(bool index=true, ostream& output = cout) {
             for (const auto &elem : this->data) {
-                cout << elem.first << " : " << elem.second << endl;
+                if (index) output  << elem.first << " " << elem.second << endl;
+                else {
+                    output  << elem.second << " ";
+                }
             }
+            if (!index) output  << endl;
         }
 };
 
