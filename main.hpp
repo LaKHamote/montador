@@ -1,1 +1,5 @@
-#include "./functions.hpp"
+#include "./utils.hpp"
+#include "./structure.hpp"
+#include "./pre_proc.hpp"
+#include "./assembler.hpp"
+#include "./ligador.hpp"
