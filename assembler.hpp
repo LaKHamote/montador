@@ -1,6 +1,15 @@
 #ifndef ASSEMBLER_HPP
 #define ASSEMBLER_HPP
 
+#include <string>
+#include <stdexcept>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <unordered_map>
+#include <algorithm>
+#include <vector>
+
 void montador(string file_path, string outputFilePath){
     Table<string, string> symbols;
     Table<int, string> codeGenerated;

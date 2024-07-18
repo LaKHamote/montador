@@ -9,7 +9,7 @@ test:	runtest.exe
 runtest.exe:	structure.o ../runtest.cpp
 	g++ -std=c++17 -Wall ./*.o ../runtest.cpp -o runtest.exe
 
-main.exe:	structure.o $(cpp_source)
+compilador.exe:	structure.o $(cpp_source)
 	g++ -std=c++17 -Wall ./*.o $(cpp_source) -o compilador.exe
 
 utils.o:	../utils.cpp

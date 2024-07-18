@@ -1,6 +1,15 @@
 #ifndef LIGADOR_HPP
 #define LIGADOR_HPP
 
+#include <string>
+#include <stdexcept>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <unordered_map>
+#include <algorithm>
+#include <vector>
+
 void ligador(const string& nomeArquivo1, const string& nomeArquivo2, string outputFilePath){
     // gerar o executavel
     Table<string, int> def1, def2;

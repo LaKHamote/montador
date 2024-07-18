@@ -1,6 +1,15 @@
 #ifndef PRE_PROC_HPP
 #define PRE_PROC_HPP
 
+#include <string>
+#include <stdexcept>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <unordered_map>
+#include <algorithm>
+#include <vector>
+
 
 void preprocessa(string inputFilePath, string outputFilePath) {
     ifstream inputFile(inputFilePath);
