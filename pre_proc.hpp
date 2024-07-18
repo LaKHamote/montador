@@ -10,6 +10,8 @@
 #include <algorithm>
 #include <vector>
 
+#include "./utils.hpp"
+
 
 void preprocessa(string inputFilePath, string outputFilePath) {
     ifstream inputFile(inputFilePath);
