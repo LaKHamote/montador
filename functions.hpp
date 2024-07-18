@@ -31,7 +31,7 @@ class Table {
             if (this->get(key) == nullptr) {
                 data[key] = value;
             } else {
-                throw invalid_argument(key + " was already declared");
+                throw invalid_argument("Erro semântico: Rotulo redefinido => "+key);
             }
         }
 

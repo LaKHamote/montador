@@ -1,4 +1,6 @@
+oito: equ 0
 INPUT       N1 
+if oito
 INPUT     N2
 LOAD   N1
 ADD          N2

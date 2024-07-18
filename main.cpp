@@ -38,9 +38,9 @@ Table<string, string> macros({
 unordered_map<string, string> equTable; // mapa para armazenar valores de EQU
 
 // pre-processamento : Converter strings 
-string paraMinuscula(const string& str) {
+string paraMaiuscula(const string& str) {
     string result = str;
-    transform(result.begin(), result.end(), result.begin(), ::tolower);
+    transform(result.begin(), result.end(), result.begin(), ::toupper);
     return result;
 }
 
@@ -67,7 +67,7 @@ string removeEspaco(const string& line) {
             result += c;
 
             // Verifica se encontrou a palavra-chave "COPY"
-            if (i + 4 <= line.length() && line.substr(i, 4) == "copy") {
+            if (i + 4 <= line.length() && line.substr(i, 4) == "COPY") {
                 copyFound = true;
             }
 
@@ -88,7 +88,7 @@ string encontraDiretiva(const vector<string>& v, const string& directive) {
     if (pos != v.end()) {
         int index = distance(v.begin(), pos);
 
-        if (index >= 1 && index + 1 < v.size() && directive == "equ") {
+        if (index >= 1 && static_cast<std::vector<std::string>::size_type>(index) + 1 < v.size() && directive == "EQU") {
             equTable[v[index - 1]] = v[index + 1];
             return "";
         } else {
@@ -138,7 +138,7 @@ void preprocessa(string inputFilePath, string outputFilePath) {
 
     // Processar o restante do arquivo
     while (getline(inputFile, line)) {
-        line = paraMinuscula(line);
+        line = paraMaiuscula(line);
         line = removeEspaco(line);
 
         if (previous_label == 1) {
@@ -160,8 +160,7 @@ void preprocessa(string inputFilePath, string outputFilePath) {
         vector<string> v;
 
         char dl = ' ';
-
-        while ((start = line.find_first_not_of(dl, end)) != string::npos) {
+        while ((start = line.find_first_not_of(dl, end)) != static_cast<int>(string::npos)) {
 
             end = line.find(dl, start);
   
@@ -169,12 +168,12 @@ void preprocessa(string inputFilePath, string outputFilePath) {
         }
 
         // popula o map com equ, para depois
-        if (encontraDiretiva(v, "equ") != "nao se aplica") {
+        if (encontraDiretiva(v, "EQU") != "nao se aplica") {
             line="";
         }
         // troca os valores das constantes de hexa para decimal
-        if (encontraDiretiva(v, "const") != "nao se aplica") {
-            line = encontraDiretiva(v, "const");
+        if (encontraDiretiva(v, "CONST") != "nao se aplica") {
+            line = encontraDiretiva(v, "CONST");
         }
 
         // Remover comentários
@@ -184,7 +183,7 @@ void preprocessa(string inputFilePath, string outputFilePath) {
         }
 
         // Processar diretivas IF
-        if (line.find("if") != string::npos) {
+        if (line.find("IF") != string::npos) {
             
             istringstream iss(line);
             string command, condition;
@@ -213,7 +212,7 @@ void montador(string file_path, string outputFilePath){
     Table<string, string> symbols;
     Table<int, string> codeGenerated;
     Table<int, string> pendencies;
-    Table<int, string> real;
+    Table<int, string> absolutes;
     Table<string, string> definitions;
     Table<string,int> used;
 
@@ -237,7 +236,7 @@ void montador(string file_path, string outputFilePath){
             string word;
             if(!(iss>>word)) continue;                                               // no words in the current line
             if(word[word.length()-1] == ':') {                                       // LABEL FOUND AS THE FIRST WORD
-                string string_pc = string(pc<10,'0') + to_string(pc);
+                // TODO: verificar word.substr(0,word.length()-1) 
                 symbols.add(                                                         // store the label with the current pc
                     word.substr(0,word.length()-1),
                     string(pc<10,'0') + to_string(pc)); 
@@ -246,46 +245,46 @@ void montador(string file_path, string outputFilePath){
             // if begin_ == true
             if(macros.get(word) != nullptr) {
                 if(word=="SPACE"){
-                    codeGenerated.add(pc,"00");real.add(pc,ABSOLUTE);pc++;
-                    if(iss>>word) throw invalid_argument("Erro na linha "+to_string(line_counter)+": Too many arguments 1");
+                    codeGenerated.add(pc,"00");absolutes.add(pc,ABSOLUTE);pc++;
+                    if(iss>>word) throw invalid_argument("Erro sintático: Erro na linha "+to_string(line_counter)+": Too many arguments");
                 }else if(word=="CONST"){
-                    if(!(iss>>word)) throw invalid_argument("Erro na linha "+to_string(line_counter)+": Too few arguments");
-                    codeGenerated.add(pc,string(2-word.length(),'0') + word);real.add(pc,ABSOLUTE);pc++;
-                    if(iss>>word) throw invalid_argument("Erro na linha "+to_string(line_counter)+": Too many arguments 2");
+                    if(!(iss>>word)) throw invalid_argument("Erro sintático: Erro na linha "+to_string(line_counter)+": Too few arguments");
+                    codeGenerated.add(pc,string(2-word.length(),'0') + word);absolutes.add(pc,ABSOLUTE);pc++;
+                    if(iss>>word) throw invalid_argument("Erro sintático: Erro na linha "+to_string(line_counter)+": Too many arguments");
                 }
             }else{
                 string* opcode = mnemonics.get(word);
                 // caso PUBLIC, EXTERN, BEGIN, END
                 if(opcode == nullptr) {
-                    if (paraMinuscula(word) == "begin" || paraMinuscula(word) == "extern" || paraMinuscula(word) == "public") {
+                    if (paraMaiuscula(word) == "BEGIN" || paraMaiuscula(word) == "EXTERN" || paraMaiuscula(word) == "PUBLIC") {
                         begin_flag=1;
                         continue;
-                    }else if (paraMinuscula(word) == "end") {
-                        break; 
+                    }else if (paraMaiuscula(word) == "END") {
+                        if (begin_flag) break; 
+                        else throw invalid_argument("Erro semântico: Erro na linha "+to_string(line_counter)+" diretiva END sem BEGIN");
                     }         
                     else {
-                        throw invalid_argument("Erro na linha "+to_string(line_counter)+": Unknown mnemonic " + word);
+                        throw invalid_argument("Erro léxico: Erro na linha "+to_string(line_counter)+": Instrução inválida " + word);
                     }
                 } // begin_=1
                 
-                codeGenerated.add(pc,*opcode);real.add(pc,ABSOLUTE);pc++;
+                codeGenerated.add(pc,*opcode);absolutes.add(pc,ABSOLUTE);pc++;
                 if(word=="STOP"){
-                    
-                    if(iss>>word) throw invalid_argument("Erro na linha "+to_string(line_counter)+": Too many arguments 3");
+                    if(iss>>word) throw invalid_argument("Erro sintático: Erro na linha "+to_string(line_counter)+": Too many arguments");
                 }
                 else{
                     if(word=="COPY"){ 
-                        if (!(iss >> word)) throw invalid_argument("Erro na linha " + to_string(line_counter) + ": Too few arguments");
+                        if (!(iss >> word)) throw invalid_argument("Erro sintático: Erro na linha " + to_string(line_counter) + ": Too few arguments");
                         size_t c_index = word.find(',');
-                        if (c_index == string::npos) throw invalid_argument("Erro na linha " + to_string(line_counter) + ": Missing comma in COPY instruction");
-                        pendencies.add(pc, word.substr(0, c_index));real.add(pc,RELATIVE);pc++;
-                        pendencies.add(pc, word.substr(c_index + 1));real.add(pc,RELATIVE);pc++;
-                        if(iss>>word) throw invalid_argument("Erro na linha "+to_string(line_counter)+": Too many arguments 4");
+                        if (c_index == string::npos) throw invalid_argument("Erro sintático: Erro na linha " + to_string(line_counter) + ": Missing comma in COPY instruction");
+                        pendencies.add(pc, word.substr(0, c_index));absolutes.add(pc,RELATIVE);pc++;
+                        pendencies.add(pc, word.substr(c_index + 1));absolutes.add(pc,RELATIVE);pc++;
+                        if(iss>>word) throw invalid_argument("Erro sintático: Erro na linha "+to_string(line_counter)+": Too many arguments");
                     }else{
-                        if(!(iss>>word)) throw invalid_argument("Erro na linha "+to_string(line_counter)+": Too few arguments");
-                        pendencies.add(pc, word);real.add(pc,RELATIVE);pc++;
+                        if(!(iss>>word)) throw invalid_argument("Erro sintático: Erro na linha "+to_string(line_counter)+": Too few arguments");
+                        pendencies.add(pc, word);absolutes.add(pc,RELATIVE);pc++;
                         
-                        if(iss>>word) throw invalid_argument("Erro na linha "+to_string(line_counter)+": Too many arguments 5");
+                        if(iss>>word) throw invalid_argument("Erro sintático: Erro na linha "+to_string(line_counter)+": Too many arguments");
                     }
                 }
             }
@@ -293,9 +292,11 @@ void montador(string file_path, string outputFilePath){
         file.close();
     for(const auto &[pc, label] : *pendencies.getData()){
         // cout << pc << ":" << label << endl;
+        string* pos = symbols.get(label);
+        if(pos==nullptr) throw invalid_argument("Erro semântico: Rotulo ausente => "+label);
         codeGenerated.add(
             pc,
-            *symbols.get(label)
+            *pos
         );
     }
     }else {
@@ -319,7 +320,7 @@ void montador(string file_path, string outputFilePath){
         outputFile <<"USO"<<endl;
         used.show(true, outputFile);
         outputFile <<"REAL"<<endl;
-        real.show(false, outputFile);
+        absolutes.show(false, outputFile);
         outputFile << "CODIGO" << endl; 
         codeGenerated.show(false, outputFile);
 
@@ -329,9 +330,9 @@ void montador(string file_path, string outputFilePath){
         // std::cout<<"-----Pendencies------"<<endl;
         // pendencies.show();
         outputFile <<"-----Code------"<<endl;
-        codeGenerated.show(false);
+        codeGenerated.show(false, outputFile);
         outputFile <<"------Real-----"<<endl;
-        real.show(false);   
+        absolutes.show(false, outputFile);   
     }
 
     file.close();
@@ -445,11 +446,23 @@ void ligador(const string& nomeArquivo1, const string& nomeArquivo2, string outp
 int main() {
 
     // TODO:  pre-processamento
-    //preprocessa("../exemplos/ex4.txt", "../myfile.pre");
-    //montador("../exemplos/ex5.txt", "../prog1.obj");
-    ligador("../prog1.obj", "../prog2.obj", "../prog1.e");
-    // montador("../exemplos/ex2.txt");
-    // montador("../ex3.txt"); 
+
+    // montador -p arg => preprocessa(arg, arg.pre), gera myfile.pre
+    // montador -o arg => montador(arg, arg.obj), gera obj./ligador prog1.obj prog2.obj”
+    // ligador arg1 arg2 => ligador(arg1 ,arg2 , arg1.e)
+    
+    preprocessa("../exemplos/ex1.txt", "../out/ex1.pre");
+    montador("../out/ex1.pre", "../out/prog56.obj");
+
+    preprocessa("../exemplos/ex5.txt", "../out/ex5.pre");
+    preprocessa("../exemplos/ex6.txt", "../out/ex6.pre");
+    montador("../out/ex5.pre", "../out/prog5.obj");
+    montador("../out/ex6.pre", "../out/prog6.obj");
+    ligador("../out/prog5.obj", "../out/prog6.obj", "../out/prog56.e");
+    
+
+    preprocessa("../exemplos/ex56.txt", "../out/ex56.pre");
+    montador("../out/ex56.pre", "../out/prog56.obj");
     
     
     return 0;
