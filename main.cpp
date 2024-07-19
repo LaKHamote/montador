@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <algorithm>
 #include <vector>
+#include <regex>
 
 using namespace std;
 
@@ -228,6 +229,8 @@ void montador(string file_path, string outputFilePath){
     int pc = 0;
     int line_counter = 0;
     int begin_flag = 0;
+    regex label_pattern("[a-zA-Z0-9_]+");
+
     if (file.is_open()) {
         while (getline(file, line)) {
             // std::cout << "linha " << line << endl;
@@ -236,9 +239,11 @@ void montador(string file_path, string outputFilePath){
             string word;
             if(!(iss>>word)) continue;                                               // no words in the current line
             if(word[word.length()-1] == ':') {                                       // LABEL FOUND AS THE FIRST WORD
-                // TODO: verificar word.substr(0,word.length()-1) 
+                if(isdigit(word[0])) cout << ("Erro léxico: Erro na linha "+to_string(line_counter)+": Rotulo nao pode começar com numero\n");
+                string label = word.substr(0,word.length()-1);
+                if(!regex_match(label, label_pattern)) cout << ("Erro léxico: Erro na linha "+to_string(line_counter)+": Rotulo so pode ter _ como caracter especial\n");
                 symbols.add(                                                         // store the label with the current pc
-                    word.substr(0,word.length()-1),
+                    label,
                     string(pc<10,'0') + to_string(pc)); 
                 if(!(iss>>word)) continue;                                           // label in empty line
             }
@@ -246,11 +251,11 @@ void montador(string file_path, string outputFilePath){
             if(macros.get(word) != nullptr) {
                 if(word=="SPACE"){
                     codeGenerated.add(pc,"00");absolutes.add(pc,ABSOLUTE);pc++;
-                    if(iss>>word) throw invalid_argument("Erro sintático: Erro na linha "+to_string(line_counter)+": Too many arguments");
+                    if(iss>>word) cout << ("Erro sintático: Erro na linha "+to_string(line_counter)+": Too many arguments\n");
                 }else if(word=="CONST"){
-                    if(!(iss>>word)) throw invalid_argument("Erro sintático: Erro na linha "+to_string(line_counter)+": Too few arguments");
+                    if(!(iss>>word)) cout << ("Erro sintático: Erro na linha "+to_string(line_counter)+": Too few arguments\n");
                     codeGenerated.add(pc,string(2-word.length(),'0') + word);absolutes.add(pc,ABSOLUTE);pc++;
-                    if(iss>>word) throw invalid_argument("Erro sintático: Erro na linha "+to_string(line_counter)+": Too many arguments");
+                    if(iss>>word) cout << ("Erro sintático: Erro na linha "+to_string(line_counter)+": Too many arguments\n");
                 }
             }else{
                 string* opcode = mnemonics.get(word);
@@ -261,30 +266,30 @@ void montador(string file_path, string outputFilePath){
                         continue;
                     }else if (paraMaiuscula(word) == "END") {
                         if (begin_flag) break; 
-                        else throw invalid_argument("Erro semântico: Erro na linha "+to_string(line_counter)+" diretiva END sem BEGIN");
+                        else cout << ("Erro semântico: Erro na linha "+to_string(line_counter)+" diretiva END sem BEGIN\n");
                     }         
                     else {
-                        throw invalid_argument("Erro léxico: Erro na linha "+to_string(line_counter)+": Instrução inválida " + word);
+                        cout << ("Erro léxico: Erro na linha "+to_string(line_counter)+": Instrução inválida " + word) << endl;
                     }
                 } // begin_=1
                 
                 codeGenerated.add(pc,*opcode);absolutes.add(pc,ABSOLUTE);pc++;
                 if(word=="STOP"){
-                    if(iss>>word) throw invalid_argument("Erro sintático: Erro na linha "+to_string(line_counter)+": Too many arguments");
+                    if(iss>>word) cout << ("Erro sintático: Erro na linha "+to_string(line_counter)+": Too many arguments\n");
                 }
                 else{
                     if(word=="COPY"){ 
-                        if (!(iss >> word)) throw invalid_argument("Erro sintático: Erro na linha " + to_string(line_counter) + ": Too few arguments");
+                        if (!(iss >> word)) cout << ("Erro sintático: Erro na linha " + to_string(line_counter) + ": Too few arguments\n");
                         size_t c_index = word.find(',');
-                        if (c_index == string::npos) throw invalid_argument("Erro sintático: Erro na linha " + to_string(line_counter) + ": Missing comma in COPY instruction");
+                        if (c_index == string::npos) cout << ("Erro sintático: Erro na linha " + to_string(line_counter) + ": Missing comma in COPY instruction\n");
                         pendencies.add(pc, word.substr(0, c_index));absolutes.add(pc,RELATIVE);pc++;
                         pendencies.add(pc, word.substr(c_index + 1));absolutes.add(pc,RELATIVE);pc++;
-                        if(iss>>word) throw invalid_argument("Erro sintático: Erro na linha "+to_string(line_counter)+": Too many arguments");
+                        if(iss>>word) cout << ("Erro sintático: Erro na linha "+to_string(line_counter)+": Too many arguments\n");
                     }else{
-                        if(!(iss>>word)) throw invalid_argument("Erro sintático: Erro na linha "+to_string(line_counter)+": Too few arguments");
+                        if(!(iss>>word)) cout << ("Erro sintático: Erro na linha "+to_string(line_counter)+": Too few arguments\n");
                         pendencies.add(pc, word);absolutes.add(pc,RELATIVE);pc++;
                         
-                        if(iss>>word) throw invalid_argument("Erro sintático: Erro na linha "+to_string(line_counter)+": Too many arguments");
+                        if(iss>>word) cout << ("Erro sintático: Erro na linha "+to_string(line_counter)+": Too many arguments\n");
                     }
                 }
             }
@@ -293,7 +298,7 @@ void montador(string file_path, string outputFilePath){
     for(const auto &[pc, label] : *pendencies.getData()){
         // cout << pc << ":" << label << endl;
         string* pos = symbols.get(label);
-        if(pos==nullptr) throw invalid_argument("Erro semântico: Rotulo ausente => "+label);
+        if(pos==nullptr) cout << ("Erro semântico: Rotulo ausente => "+label);
         codeGenerated.add(
             pc,
             *pos

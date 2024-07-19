@@ -31,7 +31,7 @@ class Table {
             if (this->get(key) == nullptr) {
                 data[key] = value;
             } else {
-                throw invalid_argument("Erro semântico: Rotulo redefinido => "+key);
+                cout << ("Erro semântico: Rotulo redefinido => "+key)<<endl;
             }
         }
 
@@ -39,7 +39,7 @@ class Table {
             if (this->get(key) != nullptr) {
                 data[key] = value;
             } else {
-                throw invalid_argument(key + " was never declared");
+                cout << (key + " was never declared\n");
             }
         }
         // se quiser imprimir no terminal, só nao colocar o output=seuOutputFile
