@@ -340,130 +340,32 @@ void montador(string file_path, string outputFilePath){
 
 }
 
-void lerArquivo(ifstream& file, Table<string, int>& def, Table<string, int>& uso, vector<int>& codigo) {
-    string linha;
-    string secao;
 
-    while (getline(file, linha)) {
-        if (linha == "DEF" || linha == "USO" || linha == "REAL" || linha == "CODIGO") {
-            secao = linha;
-        } else {
-            if (secao == "DEF") {
-                string chave;
-                int valor;
-                istringstream iss(linha);
-                iss >> chave >> valor;
-                def.add(chave, valor);
-            } else if (secao == "USO") {
-                string chave;
-                int valor;
-                istringstream iss(linha);
-                iss >> chave >> valor;
-                uso.add(chave, valor);
-            } else if (secao == "CODIGO") {
-                int valor;
-                istringstream iss(linha);
-                while (iss >> valor) {
-                    codigo.push_back(valor);
-                }
-            }
-        }
-    }
-}
 
-void ligador(const string& nomeArquivo1, const string& nomeArquivo2, string outputFilePath){
-    // gerar o executavel
-    Table<string, int> def1, def2;
-    Table<string, int> uso1, uso2;
-    vector<int> codigo1, codigo2;
-    string linha;
-    string secao;
-    ifstream file1(nomeArquivo1);
-    ifstream file2(nomeArquivo2);
-    ofstream outputFile(outputFilePath);
-
-    if (!file1 || !file2) {
-        cerr << "Erro ao abrir o arquivos " << nomeArquivo1 << endl;
-        return;
-    }
-    lerArquivo(file1, def1, uso1, codigo1);
-    lerArquivo(file2, def2, uso2, codigo2);
-
-    // cout << "def" << endl;
-    // def.show();
-    // cout << "uso" << endl;
-    // uso.show();
-    // cout << "codigo" << endl;
-
-    int fator_de_correcao = (codigo1.size());
-
-    // trocar valores no codigo 1 que sao usados do codigo 2
-    for(const auto &[label, adress] : *uso1.getData()) {
-        if (def2.get(label) == nullptr) codigo1[adress] = 0+fator_de_correcao;
-        else codigo1[adress] = *def2.get(label)+fator_de_correcao; 
+// detalhe IMPORTANTE:
+// o local onde voce chamou essa função (seu/caminho/...../montador/bin) vai ser onde o out vai sair.
+// exemplo:
+// .\montador.exe -o ../exemplos/ex2.txt gera ../exemplos/ex2.obj
+int main(int argc, char* argv[]) {
+    if (argc < 3) {
+        cerr << "Uso: montador -p|-o <arquivo>" << endl;
+        return 1;
     }
 
-    // aumentar todo endereço relativo do codigo 2 para += fator de correcaos
-    // caso tenha copy, aumenta os dois # relativos
-    // caso tenho um mneumonico (opcode 0), para de realizar a soma
-    int on=0;
-    int opcode=0;
-    for (auto& item : codigo2) {
-        
-        if (on && item != 0) {
-            if (opcode == 9) on=0;
-            if (opcode == 0) break;            
-            item += fator_de_correcao;
-        }
-        opcode=item;
-        on = !on;
+    string option = argv[1];
+    string inputFilePath = argv[2];
+    string fixed_inputFilePath = inputFilePath.substr(0, inputFilePath.length() - 4);
+    if (option == "-p") {
+        string outputFilePath = fixed_inputFilePath + ".pre";
+        preprocessa(inputFilePath, outputFilePath);
+    } else if (option == "-o") {
+        string outputFilePath = fixed_inputFilePath + ".obj";
+        montador(inputFilePath, outputFilePath);
+    } else {
+        cerr << "Opção inválida: " << option << endl;
+        cerr << "Uso: montador -p|-o <arquivo>" << endl;
+        return 1;
     }
 
-    // alterar endereços relativos do codigo 1 que estao no codigo 2
-    for(const auto &[label, adress] : *uso2.getData()) {
-        if (def1.get(label) == nullptr) codigo2[adress] = fator_de_correcao;
-        else codigo2[adress] = *def1.get(label); 
-    }
-
-
-    //cout << "CODIGO 1:" << endl;
-    for (const auto& item : codigo1) {
-        outputFile << item << " ";
-    }
-    //cout << endl;
-    //    cout << "CODIGO 2:" << endl;
-    for (const auto& item : codigo2) {
-        outputFile << item << " ";
-    }
-    //cout <<endl;
-    outputFile.close();
-    file1.close();
-    file2.close();
-}
-
-
-
-int main() {
-
-    // TODO:  pre-processamento
-
-    // montador -p arg => preprocessa(arg, arg.pre), gera myfile.pre
-    // montador -o arg => montador(arg, arg.obj), gera obj./ligador prog1.obj prog2.obj”
-    // ligador arg1 arg2 => ligador(arg1 ,arg2 , arg1.e)
-    
-    preprocessa("../exemplos/ex1.txt", "../out/ex1.pre");
-    montador("../out/ex1.pre", "../out/prog56.obj");
-
-    preprocessa("../exemplos/ex5.txt", "../out/ex5.pre");
-    preprocessa("../exemplos/ex6.txt", "../out/ex6.pre");
-    montador("../out/ex5.pre", "../out/prog5.obj");
-    montador("../out/ex6.pre", "../out/prog6.obj");
-    ligador("../out/prog5.obj", "../out/prog6.obj", "../out/prog56.e");
-    
-
-    preprocessa("../exemplos/ex56.txt", "../out/ex56.pre");
-    montador("../out/ex56.pre", "../out/prog56.obj");
-    
-    
     return 0;
 }
