@@ -334,10 +334,10 @@ void montador(string file_path, string outputFilePath){
         // symbols.show();
         // std::cout<<"-----Pendencies------"<<endl;
         // pendencies.show();
-        outputFile <<"-----Code------"<<endl;
+        // outputFile <<"-----Code------"<<endl;
         codeGenerated.show(false, outputFile);
-        outputFile <<"------Real-----"<<endl;
-        absolutes.show(false, outputFile);   
+        // outputFile <<"------Real-----"<<endl;
+        // absolutes.show(false, outputFile);   
     }
 
     file.close();
