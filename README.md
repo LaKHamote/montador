@@ -3,7 +3,7 @@
 ## Prof. Bruno Macchiavello
 ## Alunos:
 - Lucas Corrêa Boaventura - 211038262
-- 
+- Enzo Zanetti Celentano - 211026495
 
 ### Como rodar
 O programa foi feito em dois arquivos com main para gerar os executaveis MONTADOR e LIGADOR.
